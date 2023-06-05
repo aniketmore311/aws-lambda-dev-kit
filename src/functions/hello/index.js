@@ -1,6 +1,7 @@
 //@ts-check
 const path = require("path");
 const fs = require("fs");
+const yup = require("yup");
 
 /*
  * when layers are loaded by lamba they are loaded in /opt directory hence dynamic require functions must be used to load the files correctly
@@ -12,12 +13,12 @@ const COMMON_PATH =
     ? "/opt/nodejs/common"
     : path.join(process.cwd(), "src", "common");
 
-// example of how to get types for dynamic requires
+// example of how to require common files and get types for dynamic requires
 /**@type {import('../../common/utils')} */
 const utils = require(COMMON_PATH + "/utils.js");
 
 // packages installed in node_modules can be imported directly in local as well as lamba environment
-const { addDays } = require("date-fns");
+const createHttpError = require("http-errors");
 
 // example of how to get type information for lambada parameters and return types
 // this example shows a lambda being used for APIGateway proxying other types are available for different triggers
@@ -25,22 +26,33 @@ const { addDays } = require("date-fns");
  * @param {import("aws-lambda").APIGatewayProxyEvent} event
  * @param {import('aws-lambda').Context} context
  * @returns {Promise<import('aws-lambda').APIGatewayProxyResult>}
+ *
+ * @path /hello/:name
+ * @requestMethod GET
  */
 exports.handler = async (event, context) => {
-  const today = new Date();
-  const tomorrow = addDays(today, 1);
+  try {
+    // input validation
+    await utils.validate(
+      yup.object({
+        name: yup.string().required().min(3).max(5),
+      }),
+      event.pathParameters
+    );
+    //@ts-expect-error
+    const name = event.pathParameters.name;
 
-  const users = await utils.getUsers();
-  const user = users[0];
-
-  return {
-    body: JSON.stringify({
-      user,
-      tomorrow: tomorrow.toISOString(),
+    return utils.formatJSONResponse({
+      greeting: `hello! ${name}`,
+      // to test file reading from lambda environment
       data: fs
         .readFileSync(path.join(__dirname, "data", "data.txt"))
         .toString(),
-    }),
-    statusCode: 200,
-  };
+      event: event,
+      context: context,
+    });
+  } catch (err) {
+    utils.logError(err);
+    return utils.formatErrorResponse(err);
+  }
 };

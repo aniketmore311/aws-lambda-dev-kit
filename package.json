@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "build:layer": "node scripts/build-layer.js",
+    "build:layers": "node scripts/build-layers.js",
     "build:functions": "node scripts/build-functions.js"
   },
   "keywords": [],
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "aws-lambda": "^1.0.7",
-    "axios": "^1.4.0",
-    "date-fns": "^2.30.0"
+    "http-errors": "^2.0.0",
+    "yup": "^1.2.0"
   }
 }
