@@ -15,6 +15,9 @@
 - write tests in the function directory as shown with the hello-world example
 - use the `build:layer` and `build:functions` to build/package the `.zip` files
 - every function is packaged into its own `.zip` file with the name same as the folder name
+- then take the zip files and deploy them to lambda
+- make sure you setup `NODE_ENV` to `production` after deploying the lambda function so the common directory is loaded correctly
+- look at the given example function and tests to get a better understanding
 
 ### functions to be added
 - [ ] s3 sync capability
